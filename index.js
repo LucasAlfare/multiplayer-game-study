@@ -51,13 +51,17 @@ io.on('connection', client => {
 });
 
 setInterval(() => {
-    const f = {
-        id: Date.now().toString(36),
-        x: Math.floor(Math.random() * gameWidth),
-        y: Math.floor(Math.random() * gameHeight)
-    };
-    fruits.push(f);
-    io.emit('fruit-in', f);
+    if (players.length > 0) {
+        const f = {
+            id: Date.now().toString(36),
+            x: Math.floor(Math.random() * gameWidth),
+            y: Math.floor(Math.random() * gameHeight)
+        };
+        fruits.push(f);
+        io.emit('fruit-in', f);
+    } else {
+        fruits.length = 0;
+    }
 }, 2500);
 
 function handlePlayerMove(key, targetPlayer) {
