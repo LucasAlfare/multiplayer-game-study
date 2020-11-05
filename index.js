@@ -1,5 +1,6 @@
 import express from 'express';
 import socketIO from 'socket.io';
+import path from 'path';
 
 const PORT = process.env.PORT || 3000;
 
@@ -12,7 +13,7 @@ app.get('/', function(req, res){
 */
 
 app.get('/', function(req, res){
-    res.sendFile({teste: 'valor do teste'});
+    res.sendFile(path.join(__dirname, 'client_index.html'));
 });
 
 const io = socketIO(app.listen(PORT, () => console.log(`listenning on port ${PORT}...`)), { pingInterval: 1500 });
