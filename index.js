@@ -5,9 +5,11 @@ const PORT = process.env.PORT || 3000;
 
 const app = express();
 
+/*
 app.get('/', function(req, res){
     res.sendFile('./client_index.html');
 });
+*/
 
 const io = socketIO(app.listen(PORT, () => console.log(`listenning on port ${PORT}...`)), { pingInterval: 1500 });
 
