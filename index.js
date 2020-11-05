@@ -12,7 +12,7 @@ app.get('/', function(req, res){
 */
 
 app.get('/', function(req, res){
-    res.sendFile('/client_index.html');
+    res.sendFile({teste: 'valor do teste'});
 });
 
 const io = socketIO(app.listen(PORT, () => console.log(`listenning on port ${PORT}...`)), { pingInterval: 1500 });
