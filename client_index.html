@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOGO ONLINE</title>
+
+    <!-- dependencia necessaria para a conexao ao servidor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.1/socket.io.js"
+        integrity="sha512-AcZyhRP/tbAEsXCCGlziPun5iFvcSUpEz2jKkx0blkYKbxU81F+iq8FURwPn1sYFeksJ+sDDrI5XujsqSobWdQ=="
+        crossorigin="anonymous"></script>
+
+    <style>
+        #canvas {
+            border: 5px solid green;
+            image-rendering: pixelated;
+            width: 400px;
+            height: 400px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>JOGO ONLINE</h1>
+    <h5 id="latency-text">Latência: ?</h5>
+    <canvas id="canvas"></canvas>
+    <h3 id="points-text">Pontuação: 0</h3>
+    <ol id="players-list"></ol>
+
+    <script>
+        const latencyText = document.getElementById('latency-text');
+        const canvas = document.getElementById('canvas');
+        const pointsText = document.getElementById('points-text');
+        const playersList = document.getElementById('players-list');
+
+        let players = [];
+        let fruits = [];
+        let localPlayer;
+
+        function NetworkManager() {
+            // endereco local da maquina
+            const connection = io('http://localhost:3000/');
+
+            connection.on('pong', data => {
+                updateLatencyText(data);
+            });
+
+            connection.on('game-state', data => {
+                canvas.width = data.gameDimension.width;
+                canvas.height = data.gameDimension.height;
+                players = data.players;
+                fruits = data.fruits;
+
+                for (let p of players) {
+                    if (p.id === connection.id) {
+                        localPlayer = p;
+                    }
+                }
+
+                updatePlayersList();
+            });
+
+            connection.on('player-in', data => {
+                players.push(data);
+                updatePlayersList();
+            });
+
+            connection.on('player-move', data => {
+                for (let p of players) {
+                    if (p.id === data.id) {
+                        p.x = data.x;
+                        p.y = data.y;
+                        break;
+                    }
+                }
+
+                updatePlayersList();
+            });
+
+            connection.on('player-point', data => {
+                for (const p of players) {
+                    if (p.id === data.id) {
+                        p.points = data.points;
+
+                        if (p.id === localPlayer.id) {
+                            updatePointsText(p.points);
+                        }
+
+                        break;
+                    }
+                }
+
+                updatePlayersList();
+            });
+
+            connection.on('fruit-in', data => {
+                fruits.push(data);
+            });
+
+            connection.on('fruit-out', data => {
+                fruits = fruits.filter(function (f) {
+                    return f.id !== data;
+                });
+            });
+
+            connection.on('player-out', data => {
+                players = players.filter(function (p) {
+                    return p.id !== data;
+                });
+
+                updatePlayersList();
+            });
+
+            return {
+                sendPlayerMoveRequest: function (key) {
+                    connection.emit('player-move', key);
+                }
+            }
+        }
+
+        function RenderManager() {
+            const context = canvas.getContext('2d');
+
+            function render() {
+                context.clearRect(0, 0, canvas.width, canvas.height);
+
+                for (let f of fruits) {
+                    drawFruit(f);
+                }
+
+                for (let p of players) {
+                    drawPlayer(p);
+                }
+
+                requestAnimationFrame(render);
+            }
+
+            function drawPlayer(player) {
+                context.fillStyle = player.id === localPlayer.id ? 'yellow' : 'black';
+                context.fillRect(player.x, player.y, 1, 1);
+            }
+
+            function drawFruit(fruit) {
+                context.fillStyle = 'red';
+                context.fillRect(fruit.x, fruit.y, 1, 1);
+            }
+
+            return { start: function () { render() } }
+        }
+
+        function InputManager(networkManager) {
+            document.addEventListener('keydown', event => {
+                if (event.key.includes('Arrow')) {
+                    networkManager.sendPlayerMoveRequest(event.key);
+                }
+            });
+        }
+
+        function updateLatencyText(latency) {
+            latencyText.innerText = `Latência: ${latency}ms`;
+        }
+
+        function updatePointsText(points) {
+            pointsText.innerText = `Pontuação: ${points}`;
+        }
+
+        function updatePlayersList() {
+            if (players.length > 0) {
+                const aux = players.sort(function (a, b) {
+                    if (a.points < b.points) {
+                        return 1;
+                    } else {
+                        return -1;
+                    }
+                    return 0;
+                });
+
+                playersList.innerHTML = '';
+                for (const p of aux) {
+                    const listItem = document.createElement('li');
+                    const itemValue = `${p.id === localPlayer.id ? 'EU' : p.id} +${p.points}`;
+                    listItem.appendChild(document.createTextNode(itemValue));
+                    playersList.appendChild(listItem);
+                }
+            }
+        }
+
+        const networkManager = new NetworkManager();
+        const renderManager = new RenderManager();
+        const inputManager = new InputManager(networkManager);
+
+        renderManager.start();
+    </script>
+</body>
+
+</html>
