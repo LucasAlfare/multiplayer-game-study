@@ -3,7 +3,13 @@ import socketIO from 'socket.io';
 
 const PORT = process.env.PORT || 3000;
 
-const io = socketIO(express().listen(PORT, () => console.log(`listenning on port ${PORT}...`)), { pingInterval: 1500 });
+const app = express();
+
+app.get('/', function(req, res){
+    res.sendFile(__dirname + '/client_index.html');
+});
+
+const io = socketIO(app.listen(PORT, () => console.log(`listenning on port ${PORT}...`)), { pingInterval: 1500 });
 
 const gameWidth = 10;
 const gameHeight = 10;
