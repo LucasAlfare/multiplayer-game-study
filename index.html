@@ -12,10 +12,13 @@
         crossorigin="anonymous"></script>
 
     <style>
-        #canvas {
+        #my-container {
             display: block;
             margin-left: auto;
             margin-right: auto;
+        }
+        
+        #canvas {
             border: 5px solid grey;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
@@ -27,11 +30,13 @@
 </head>
 
 <body>
-    <h1>JOGO ONLINE</h1>
-    <h5 id="latency-text">Latência: ?</h5>
-    <canvas id="canvas"></canvas>
-    <h3 id="points-text">Pontuação: 0</h3>
-    <ol id="players-list"></ol>
+    <div id="my-container">
+        <h1>JOGO ONLINE</h1>
+        <h5 id="latency-text">Latência: ?</h5>
+        <canvas id="canvas"></canvas>
+        <h3 id="points-text">Pontuação: 0</h3>
+        <ol id="players-list"></ol>
+    </div>    
 
     <script>
         const latencyText = document.getElementById('latency-text');
