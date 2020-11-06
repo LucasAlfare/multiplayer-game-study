@@ -40,7 +40,10 @@
 
         function NetworkManager() {
             // endereco local da maquina
-            const connection = io('http://localhost:3000/');
+            //const connection = io('http://localhost:80/');
+
+            //endereco remoto do servidor hospedado no heroku
+            const connection = io('https://meu-server.herokuapp.com/');
 
             connection.on('pong', data => {
                 updateLatencyText(data);
